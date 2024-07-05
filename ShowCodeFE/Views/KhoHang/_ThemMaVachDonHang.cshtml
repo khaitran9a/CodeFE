@@ -1,0 +1,196 @@
+﻿@model OrderModel
+
+<style>
+	.k-numerictextbox {
+		width: auto;
+	}
+</style>
+<style>
+	.tagify {
+		min-height: 60px !important;
+		resize: vertical;
+	}
+</style>
+<div class="dataTables_wrapper dt-bootstrap4">
+	<div class=" row  mt-1 mb-2">
+		<a href="javascript:TuDongSinhMaVach(@Model.Id);" class="navi-link btn btn-info ml-4">
+			<span class="navi-icon">
+				<i class="flaticon-interface-1"></i>
+			</span>
+			<span class="navi-text">Tự động tạo mã vạch</span>
+		</a>
+	</div>
+	<div class=" row  mt-1">
+
+		<div class="col-lg-12 col-md-9 col-sm-12">
+
+			<input id="kt_tagify_3" name='tags-outside' placeholder="Nhập mã vạch" class='form-control tagify tagify--outside'
+				   value="@string.Join(", ", Model.ListMaVach.Select(ct => ct))" />
+			<lable class="col-lg-12 text-right text-danger">
+				@*(*)Chú ý: phải chọn kho và lưu đơn hàng để hệ thống lấy các mã vạch từ kho hàng tương ứng*@
+			</lable>
+		</div>
+
+		<script>
+
+			var KTTagify = function () {
+
+				// Private functions
+				var demo4 = function () {
+					var input = document.getElementById('kt_tagify_3');
+					console.log(input);
+					var tagify = new Tagify(input, {
+						pattern: /^.{1,30}$/,
+						delimiters: ", ",
+						keepInvalidTags: true,
+						duplicates: true,
+						transformTag: transformTag,
+						dropdown: {
+							enabled: 3,
+						}
+					});
+					console.log(tagify);
+					tagify.on('add', function (e) {
+						console.log(e)
+						saveMaVach(e.detail.data.value, @Model.Id, @Model.WarehouseId, e.detail.index)
+					});
+
+					tagify.on('remove', function (e) {
+						deleteMaVach(e.detail.data.value, @Model.Id, @Model.WarehouseId)
+					});
+
+					function transformTag(tagData) {
+						var states = [
+							'success',
+							'warning',
+							'primary',
+							'danger',
+							'info'];
+						tagData.class = 'tagify__tag tagify__tag--' + states[KTUtil.getRandomInt(0, 4)];
+					}
+				}
+				return {
+					// public functions
+					init: function () {
+						demo4();
+					}
+				};
+			}();
+
+			jQuery(document).ready(function () {
+				KTTagify.init();
+			});
+
+
+
+
+			function saveMaVach(tags, oid,wid,index) {
+				console.log(wid);
+				var _data = { tags: tags, oid: oid, wid: wid }
+				addAntiForgeryToken(_data);
+				$.ajax({
+					url: "@(Url.Action("ThemMaVachChoSanPhamDon", "KhoHang"))",
+					cache: false,
+					type: 'POST',
+					data: _data,
+					success: function (result) {
+						if (result.success) {
+							var listMas = result.listMas; // Danh sách tag trả về từ server
+							console.log(listMas);
+							var maVachs = listMas.map(function (tag) {
+								return tag; // Lấy tên tag
+							});
+							var tagifyInput = document.getElementById('kt_tagify_3');
+							console.log(tagifyInput)
+							tagifyInput.value = maVachs.join(', '); // Gán giá trị cho ô input
+							var pid = result.pid;
+							ShowSuccess(result.Message);
+
+							LoadDanhSachSanPhamDon(oid);
+						}
+						else {
+
+							ShowError(result.Message);
+							var tagifyInput = document.getElementById('kt_tagify_3');
+							console.log(tagifyInput)
+
+							CloseModalManual();
+							ThemMaVach(oid)
+						}
+					},
+					error: function (error) {
+						// Xử lý lỗi nếu có
+					}
+				});
+			}
+
+
+			function deleteMaVach(tags, oid,wid) {
+				var _data = { tags: tags, oid: oid, wid: wid }
+				addAntiForgeryToken(_data);
+				$.ajax({
+					url: "@(Url.Action("XoaMaVachChoSanPhamDon", "KhoHang"))",
+					cache: false,
+					type: 'POST',
+					data: _data,
+					success: function (result) {
+						if (result.success) {
+							var listMas = result.listMas; // Danh sách tag trả về từ server
+							var maVachs = listMas.map(function (tag) {
+								return tag; // Lấy tên tag
+							});
+							var tagifyInput = document.getElementById('kt_tagify_3');
+							tagifyInput.value = maVachs.join(', '); // Gán giá trị cho ô input
+							LoadDanhSachSanPhamDon(oid);
+
+						}
+
+					},
+					error: function (error) {
+						// Xử lý lỗi nếu có
+					}
+				});
+			}
+
+
+
+			function TuDongSinhMaVach(oid) {
+				var _data = { oid: oid };
+				console.log(oid);
+				addAntiForgeryToken(_data);
+				$.ajax({
+					cache: false,
+					type: "POST",
+					url: "@Url.Action("TuDongSinhMaVachDonHang", "KhoHang")",
+					data: _data,
+					error: function (jqXHR, textStatus, errorThrown) {
+						ShowError(errorThrown);
+					},
+					success: function (data) {
+						if (data.success) {
+							ShowSuccess(data.Message);
+							CloseModalManual();
+							ThemMaVach(oid)
+
+						}
+						else{
+							ShowError(data.Message);
+						}
+						
+					},
+				});
+			}
+		</script>
+
+	</div>
+
+	<table class="table table-striped- table-bordered table-hover dataTable" id="tabDanhSachSanPhamDon">
+		@*@await Html.PartialAsync("_DanhSachSanPhamDonHang", Model.Items)*@
+	</table>
+	<script>
+		
+		$(document).ready(function () {
+			LoadDanhSachSanPhamDon(@Model.Id);
+		});
+	</script>
+</div>

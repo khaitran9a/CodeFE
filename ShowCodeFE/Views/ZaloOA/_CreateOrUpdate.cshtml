@@ -1,0 +1,57 @@
+﻿@using Nop.Web.Areas.CRM.Models.Zalo
+@model ZaloAccountModel
+
+
+
+<div class="kt-container  kt-container--fluid  kt-grid__item kt-grid__item--fluid">
+    <div class="kt-portlet">
+        <div class="kt-form kt-form--label-right">
+            <div class="kt-portlet__body">
+                <input asp-for="Id" type="hidden" />
+
+                <div class="form-group row">
+                    <label class="col-2 col-form-label text-required">Tên:</label>
+                    <div class="col-10">
+                        <nop-editor asp-for="Name" />
+                        <span asp-validation-for="Name"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-2 col-form-label text-required">RefreshToken:</label>
+                    <div class="col-10">
+                        <nop-editor asp-for="RefreshToken" />
+                        <span asp-validation-for="RefreshToken"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-2 col-form-label text-required">AccessToken:</label>
+                    <div class="col-10">
+                        <nop-editor asp-for="AccessToken" />
+                        <span asp-validation-for="AccessToken"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-2 col-form-label text-required">App Id:</label>
+                    <div class="col-10">
+                        <nop-editor asp-for="AppId" />
+                        <span asp-validation-for="AppId"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-2 col-form-label">Được sử dụng:</label>
+                    <div class="col-2">
+                        <nop-editor asp-for="Active" />
+                        <span asp-validation-for="Active"></span>
+                    </div>
+                    <label class="col-8 col-form-label font-italic text-left">(*)Mức ưu tiên càng cao sẽ được áp dụng trước</label>
+
+                </div>
+             
+            </div>
+        </div>
+
+
+    </div>
+
+</div>

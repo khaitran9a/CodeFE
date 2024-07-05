@@ -1,0 +1,383 @@
+﻿@model SanPhamTonKhoSearchModel
+@{
+    ViewBag.Title = "Báo cáo tồn kho chi tiết";
+    Html.SetActiveMenuItemSystemName("KhoHang.QLTonKhoChiTiet");
+}
+
+<nop-antiforgery-token />
+<div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+    <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+        <!--begin::Details-->
+        <div class="d-flex align-items-center flex-wrap mr-2">
+            <!--begin::Title-->
+            <h5 class="text-dark font-weight-bold mt-2 mb-2 mr-5">Thông tin @ViewBag.Title</h5>
+            <!--end::Title-->
+            <!--begin::Separator-->
+            <div class="subheader-separator subheader-separator-ver mt-2 mb-2 mr-5 bg-gray-200"></div>
+            <!--end::Separator-->
+            <!--begin::Search Form-->
+            <div class="d-flex align-items-center" id="kt_subheader_search">
+                <span class="text-dark-50 font-weight-bold" id="kt_subheader_total"></span>
+
+            </div>
+            <!--end::Search Form-->
+        </div>
+        <!--end::Details-->
+        <!--begin::Toolbar-->
+        <div class="d-flex align-items-center">
+        </div>
+        <!--end::Toolbar-->
+    </div>
+</div>
+<!--begin::Entry-->
+<div class="d-flex flex-column-fluid">
+    <!--begin::Container-->
+    <div class="container">
+        <!--begin::Card-->
+    
+        <div class="card card-custom gutter-b" id="tabTimKiem">
+            <div class="card-header">
+                <h3 class="card-title">@T("Admin.Common.Search")</h3>
+            </div>
+            <div class="card-body">
+                <input asp-for="MucCanhBaoId" type="hidden" />
+
+                <div class="form-group row">
+                    <div class="col-md-4">
+                        <label>Tên sản phẩm:</label>
+                        <nop-editor asp-for="SearchKeyword" />
+                    </div>
+                    <div class="col-md-4">
+                        <label>Nhóm:</label>
+                        <nop-select asp-for="SearchCategoryId" asp-items="Model.AvailableCategories" />
+                    </div>
+                    <div class="col-lg-2">
+                        <label>Ngày giao dịch từ:</label>
+                        <nop-editor asp-for="SearchNgayGiaoDichTu" asp-template="DateNullable" />
+                    </div>
+                    <div class="col-lg-2">
+                        <label>Đến:</label>
+                        <nop-editor asp-for="SearchNgayGiaoDichDen" asp-template="DateNullable" />
+                    </div>
+                </div>
+                <div class="form-group row">
+
+                    <div class="col-md-4">
+                        <label>Loại:</label>
+                        <nop-select asp-for="SearchLoaiSanPhamId" asp-items="Model.AvailableLoaiSanPhams" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Kho hàng:</label>
+                        <nop-select asp-for="SearchWarehouseId" asp-items="Model.AvailableWarehouses" />
+                    </div>
+                    <div class="col-md-4">
+                        <label>Sắp xếp:</label>
+                        <select id="SearchOrderById" class="form-control">
+                            <option value="1" selected="selected">Tồn trong kho</option>
+                            <option value="2">Đang đóng gói</option>
+                            <option value="3">Đang vận chuyển</option>
+                            <option value="7">Đang hoàn</option>
+                            <option value="4">Đang yêu cầu</option>
+                            <option value="5">Theo tên sản phẩm</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+
+                    <div class="col-lg-2">
+                        <label>Số lượng tồn từ:</label>
+                        <nop-editor asp-for="SearchSoLuongTonTu" asp-template="DecimalNullable" />
+                    </div>
+                    <div class="col-lg-2">
+                        <label>Đến:</label>
+                        <nop-editor asp-for="SearchSoLuongTonDen" asp-template="DecimalNullable" />
+                    </div>
+                    <div class="col-md-4">
+                    </div>
+                    <div class="col-md-4">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <button type="button" id="search-sanpham" class="btn btn-primary btn-sm"> <i class="fa fa-search"></i> Tìm kiếm </button>
+                        <button id="btn-export" class="btn btn-success btn-sm mr-2 ml-2"> <i class="fa fa-file-excel"></i> Xuất file Excel báo cáo tồn kho </button>
+                        <form asp-controller="KhoHang" asp-action="ExportExcelBCTonKhoChiTiet" method="post" id="export-excel-form">
+                            <input type="hidden" id="SearchWarehouseId" name="SearchWarehouseId" />
+                            <input type="hidden" id="SearchNgayGiaoDichTu" name="SearchNgayGiaoDichTu" />
+                            <input type="hidden" id="SearchNgayGiaoDichDen" name="SearchNgayGiaoDichDen" />
+                            <input type="hidden" id="SearchLoaiSanPhamId" name="SearchLoaiSanPhamId" />
+                            <input type="hidden" id="SearchKeyword" name="SearchKeyword" />
+                            <input type="hidden" id="SearchOrderById" name="SearchOrderById" />
+                            <input type="hidden" id="SearchCategoryId" name="SearchCategoryId" />
+                            <input type="hidden" id="SearchSoLuongTonTu" name="SearchSoLuongTonTu" />
+                            <input type="hidden" id="SearchSoLuongTonDen" name="SearchSoLuongTonDen" />
+                        </form>
+                        <script>
+                            $(document).ready(function () {
+
+                                $('#btn-export').click(function (e) {
+                                    e.preventDefault();
+                                    $('#export-excel-form #SearchWarehouseId').val($("#@Html.IdFor(m=>m.SearchWarehouseId)").val());
+                                    $('#export-excel-form #SearchNgayGiaoDichTu').val($("#@Html.IdFor(m=>m.SearchNgayGiaoDichTu)").val());
+                                    $('#export-excel-form #SearchNgayGiaoDichDen').val($("#@Html.IdFor(m=>m.SearchNgayGiaoDichDen)").val());
+                                    $('#export-excel-form #SearchLoaiSanPhamId').val($("#@Html.IdFor(m=>m.SearchLoaiSanPhamId)").val());
+                                    $('#export-excel-form #SearchKeyword').val($("#@Html.IdFor(m=>m.SearchKeyword)").val());
+                                    $('#export-excel-form #SearchOrderById').val($("#@Html.IdFor(m=>m.SearchOrderById)").val());
+                                    $('#export-excel-form #SearchCategoryId').val($("#@Html.IdFor(m=>m.SearchCategoryId)").val());
+                                    $('#export-excel-form #SearchSoLuongTonTu').val($("#@Html.IdFor(m=>m.SearchSoLuongTonTu)").val());
+                                    $('#export-excel-form #SearchSoLuongTonDen').val($("#@Html.IdFor(m=>m.SearchSoLuongTonDen)").val());
+                                    $('#export-excel-form').submit();
+                                    return false;
+                                });
+                            });
+                        </script>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!--end::Card-->
+        <!--Begin::Card-->
+        <div class="card card-custom gutter-b">
+            <!--Begin::Body-->
+            <div class="card-body">
+                @{
+                    var gridModel = new DataTablesModel
+            {
+                Name = "items-grid",
+                UrlRead = new DataUrl("ListTonKhoChiTiet", "KhoHang", null),
+                SearchButtonId = "search-sanpham",
+                Length = Model.PageSize,
+                LengthMenu = Model.AvailablePageSizes,
+                Filters = new List<FilterParameter>
+                {
+                new FilterParameter(nameof(Model.SearchWarehouseId)),
+                new FilterParameter(nameof(Model.SearchNgayGiaoDichTu)),
+                new FilterParameter(nameof(Model.SearchNgayGiaoDichDen)),
+                new FilterParameter(nameof(Model.SearchLoaiSanPhamId)),
+                new FilterParameter(nameof(Model.SearchKeyword)),
+                new FilterParameter(nameof(Model.SearchOrderById)),
+                new FilterParameter(nameof(Model.SearchCategoryId)),
+                new FilterParameter(nameof(Model.SearchSoLuongTonTu)),
+                new FilterParameter(nameof(Model.SearchSoLuongTonDen)),
+                new FilterParameter(nameof(Model.MucCanhBaoId)),
+                }
+            };
+                    gridModel.ColumnCollection = new List<ColumnProperty> {
+                new ColumnProperty(nameof(SanPhamTonKhoModel.Ma))
+                {
+                Title = "#",
+                Width = "60",
+                ClassName = NopColumnClassDefaults.CenterAll,
+                Render = new RenderCustom("renderColumnMa")
+                }
+                };
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.Ten))
+            {
+                Title = "Tên sản phẩm",
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.GiaBan))
+            {
+                Title = "Giá bán",
+                Width = "80",
+                Render = new RenderCustom("renderColumnPrice")
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongDauKy))
+            {
+                Title = "Tồn đầu kỳ",
+                Width = "60",
+                ClassName = "text-primary",
+                Render = new RenderCustom("renderColumnSoLuong")
+            });
+            // nhập
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongNhapMoi))
+            {
+                Title = "Nhập mua",
+                Width = "60",
+                ClassName = "text-success",
+                Render = new RenderCustom("renderColumnSoLuong")
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongNhapChuyenKho))
+            {
+                Title = "Nhập chuyển kho",
+                Width = "60",
+                ClassName = "text-success",
+                Render = new RenderCustom("renderColumnSoLuong")
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongNhapTuDonHoan))
+            {
+                Title = "Nhập từ đơn hoàn",
+                Width = "60",
+                ClassName = "text-success",
+                Render = new RenderCustom("renderColumnSoLuong")
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongNhapCanKho))
+            {
+                Title = "Nhập cân kho",
+                Width = "60",
+                ClassName = "text-success",
+                Render = new RenderCustom("renderColumnSoLuong")
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongNhap))
+            {
+                Title = "Tổng nhập",
+                Width = "60",
+                ClassName = "text-success",
+                Render = new RenderCustom("renderColumnSoLuongTong")
+            });
+            // xuất
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongXuatBan))
+            {
+                Title = "Xuất bán",
+                Width = "60",
+                ClassName = "text-danger",
+                Render = new RenderCustom("renderColumnSoLuong")
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongXuatChuyenKho))
+            {
+                Title = "Xuất chuyển kho",
+                Width = "60",
+                ClassName = "text-danger",
+                Render = new RenderCustom("renderColumnSoLuong")
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongXuatTraNCC))
+            {
+                Title = "Xuất trả NCC",
+                Width = "60",
+                ClassName = "text-danger",
+                Render = new RenderCustom("renderColumnSoLuong")
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongXuatCanKho))
+            {
+                Title = "Xuất cân kho",
+                Width = "60",
+                ClassName = "text-danger",
+                Render = new RenderCustom("renderColumnSoLuong")
+            });
+
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongXuat))
+            {
+                Title = "Tổng xuất",
+                Width = "60",
+                ClassName = "text-danger",
+                Render = new RenderCustom("renderColumnSoLuongTong")
+            });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(SanPhamTonKhoModel.SoLuongTrongKho))
+            {
+                Title = "Tồn cuối kỳ",
+                Width = "80",
+                ClassName = "text-primary",
+                Render = new RenderCustom("renderColumnTonKho")
+            });
+
+                }
+                @await Html.PartialAsync("Table", gridModel)
+                <script>
+                    function ChiTiet(pId, pName) {
+                        var _url = "@(Url.Action("_ChiTietSanPhamTonKho", "KhoHang"))?pid=" + pId;
+                        var _title = "Thông tin tồn kho của sản phẩm: " + pName;
+                        OpenModalManual(_title, _url, "modal-xl");
+                    }
+                    function ChiTietXuatNhap(pId, pName) {
+                        var TuNgay = ToDate($("#@Html.IdFor(m=>m.SearchNgayGiaoDichTu)").val());
+                        var fromdt = "";
+                        if (TuNgay != null) {
+                            fromdt = TuNgay.toSysDateString();
+                        }
+                        var DenNgay = ToDate($("#@Html.IdFor(m=>m.SearchNgayGiaoDichDen)").val());
+                        var todt = "";
+                        if (DenNgay != null) {
+                            todt = DenNgay.toSysDateString();
+                        }
+                        var _url = "@(Url.Action("_ChiTietSanPhamXuatNhap", "KhoHang"))?pid=" + pId + "&khid=" + $("#@Html.IdFor(m=>m.SearchWarehouseId)").val() + "&fromdt=" + fromdt + "&todt=" + todt;
+                        var _title = "Thông tin xuât nhập của sản phẩm: " + pName;
+                        OpenModalManual(_title, _url, "modal-xl");
+                    }
+                    function ChiTietGiaoDichXuatNhap(sessionid) {
+                        var _url = "@(Url.Action("_ChiTietXuatNhap", "KhoHang"))?sid=" + sessionid;
+                        var _title = "Thông tin chi tiết giao dịch";
+                        OpenModalManual(_title, _url, "modal-xl");
+
+                    }
+
+                    function renderColumnThietLap(data, type, row, meta) {
+                        var html = '';
+                        html = html + '<a href="javascript:ThietLapDinhMuc(' + row.Id + ',' + row.WareHouseId + ');" class="ml-2 btn btn-icon btn-light btn-hover-primary btn-sm"><i class="flaticon-edit-1 text-success"></i></a>'
+
+                        return html;
+                    }
+                    function ThietLapDinhMuc(id, wid) {
+                        var _url = "@(Url.Action("_ThietLapDinhMuc", "KhoHang"))?pid=" + id + "&wid=" + wid;
+                        var _title = "Thiết lập định mức";
+                        OpenModalManual(_title, _url, "modal-s");
+
+                    }
+                    function renderColumnPrice(data, type, row, meta) {
+                        return kendo.toString(data, "n0");
+                    }
+                    function renderColumnMa(data, type, row, meta) {
+                        return '<a href="javascript:ChiTiet(' + row.Id + ',\'' + row.Ten + '\');" class="text-primary font-weight-bolder text-hover-success">' + data + '</a>';
+                    }
+                    function renderColumnSoLuong(data, type, row, meta) {
+                        return kendo.toString(data, "n2");
+                    }
+                    function renderColumnSoLuongTong(data, type, row, meta) {
+                        return '<span style="font-weight: bold;" >' + kendo.toString(data, "n2") + '</span >';
+                    }
+                  
+                    function renderColumnSoLuongDinhMuc(data, type, row, meta) {
+                        return '<span class="text-primary" >' + kendo.toString(data, "n2") + '</span >';
+                    }
+
+                    function renderColumnTonKho(data, type, row, meta) {
+                        var _html = "";
+                       
+                        if (data > 0)
+                            return _html += '<a href="javascript:ChiTietXuatNhap(' + row.Id + ',\'' + row.Ten + '\');" class="text-success font-weight-bolder text-hover-warning">' + kendo.toString(data, "n2") + '</a>';
+                        else
+                            return _html += '<a href="javascript:ChiTietXuatNhap(' + row.Id + ',\'' + row.Ten + '\');" class="text-danger font-weight-bolder text-hover-warning">' + kendo.toString(data, "n2") + '</a>';
+                    }
+                    //$(document).ready(function () {
+                    //    $("#SearchWarehouseId").change(function () {
+                    //        ReloadSearchModel();
+                    //    });
+                    //});
+
+                    function ReloadSearchModel() {
+                        var postData = {
+                            key: $("#@Html.IdFor(m=>m.SearchKeyword)").val(),
+                            catalogy: $("#@Html.IdFor(m=>m.SearchCategoryId)").val(),
+                            tungay: $("#@Html.IdFor(m=>m.SearchNgayGiaoDichTu)").val(),
+                            denngay: $("#@Html.IdFor(m=>m.SearchNgayGiaoDichDen)").val(),
+                            loaiSpid: $("#@Html.IdFor(m=>m.SearchLoaiSanPhamId)").val(),
+                            wid: $("#SearchWarehouseId").val(),
+                            tontu: $("#@Html.IdFor(m=>m.SearchSoLuongTonTu)").val(),
+                            tonden: $("#@Html.IdFor(m=>m.SearchSoLuongTonDen)").val(),
+                            sapxep: $("#@Html.IdFor(m=>m.SearchOrderById)").val(),
+                            mucanhbao: $("#MucCanhbaoId").val(),
+                        };
+                        addAntiForgeryToken(postData);
+
+                        $.ajax({
+                            cache: false,
+                            type: "POST",
+                            url: "@(Url.Action("QLTonKho", "KhoHang"))",
+                            data: postData,
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                ShowError(errorThrown);
+                            },
+                            success: function (data) {
+                                $("#search-sanpham").click();
+                            },
+                        });
+                    }
+                </script>
+            </div>
+            <!--end::Body-->
+        </div>
+        <!--End::Card-->
+    </div>
+    <!--end::Container-->
+</div>
+<!--end::Entry-->

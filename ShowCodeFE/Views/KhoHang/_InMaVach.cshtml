@@ -1,0 +1,67 @@
+﻿@model InMaVachModel
+
+<style>
+    input[type=checkbox] {
+        accent-color: #4A7DFF;
+    }
+</style>
+<!--begin::Entry-->
+<div class="d-flex flex-column-fluid">
+    <!--begin::Container-->
+    <div class="container">
+        <!--Begin::Card-->
+        <div class="card card-custom gutter-b">
+            <!--Begin::Body-->
+            <div class="card-body">
+                <input asp-for="GiaoDichId" type="hidden" />
+                <input asp-for="SanPhamId" type="hidden" />
+                <input asp-for="WarehouseId" type="hidden" />
+
+
+                <div class="form-group row">
+                    <label class="col-4 col-form-label text-required">Chiều cao khổ giấy (mm):</label>
+                    <div class="col-8">
+                        <nop-editor asp-for="Height" />
+                        <span asp-validation-for="Height"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-4 col-form-label text-required">Chiều rộng khổ giấy (mm):</label>
+                    <div class="col-8">
+                        <nop-editor asp-for="BWidth" />
+                        <span asp-validation-for="BWidth"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-md-12 text-center">
+                        <button id="btnLuu" class="btn btn-primary font-weight-bold mr-5">
+                            <i class="flaticon-interface-5"></i>
+                            In mã
+                        </button>
+                        <a class="btn btn-secondary font-weight-bold mr-2" href="javascript:CloseModalManual();">
+                            <i class="flaticon2-delete"></i>
+                            Thôi
+                        </a>
+                        <script>
+                            $(document).ready(function () {
+                                $("#btnLuu").click(function () {
+
+                                    // Tạo một URL với các tham số cần thiết (nếu có)
+                                    var url = "@(Url.Action("InPhieuMaVach", "KhoHang"))" + "?GiaoDichId=" + encodeURIComponent($("#GiaoDichId").val()) + "&SanPhamId=" + encodeURIComponent($("#SanPhamId").val()) + "&Height=" + encodeURIComponent($("#Height").val()) + "&BWidth=" + encodeURIComponent($("#BWidth").val()) + "&WarehouseId=" + encodeURIComponent($("#WarehouseId").val());
+
+                                    window.open(url, '_blank');
+
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+            <!--end::Body-->
+        </div>
+        <!--End::Card-->
+    </div>
+    <!--end::Container-->
+</div>
+<!--end::Entry-->

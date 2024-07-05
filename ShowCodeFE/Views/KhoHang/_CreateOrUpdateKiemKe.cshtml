@@ -1,0 +1,354 @@
+﻿@model KhoHangGiaoDichModel
+@inject IWorkContext workContext
+<script>
+    //thiet lap gia tri mac dinh
+    $(document).ready(function () {
+        objNhanVienSelected.id = @(workContext.CurrentCustomer.NhanVienId.GetValueOrDefault(0));
+        objNhanVienSelected.rootId = 0;
+        objNhanVienSelected.isNew = "0";
+    });
+</script>
+<!--begin::Entry-->
+<div class="d-flex flex-column-fluid">
+    <!--begin::Container-->
+    <div class="container">
+        <!--Begin::Card-->
+        <div class="card card-custom gutter-b">
+
+            <!--Begin::Body-->
+            <div class="card-body">
+                <input asp-for="Id" type="hidden" />
+                <input asp-for="LoaiId" type="hidden" />
+                <input asp-for="SessionId" type="hidden" />
+                <input asp-for="JsonSanPhamModels" type="hidden" />
+                <input type="hidden" asp-for="CustomerId" />
+               
+                <text>
+                    <div class="form-group row">
+                        <label class="col-2 col-form-label text-right">Kho kiểm kê:</label>
+                        <div class="col-4">
+                            <nop-select asp-for="KhoHangId" asp-items="Model.AvailableKhoHangs" />
+                            <span asp-validation-for="KhoHangId"></span>
+                            <script>
+                                $(document).ready(function () {
+                                    $("#KhoHangId").change(function () {
+                                        LoadTabSanPham();
+                                    });
+                                    
+                                });
+                                </script>
+                        </div>
+                    </div>
+                 </text>
+               
+
+                <div class="form-group row">
+                    <label class="col-2 col-form-label text-right">Ngày giao dịch:</label>
+                    <div class="col-4">
+                        <nop-editor asp-for="NgayGiaoDich" asp-template="DateNullable" />
+                        <span asp-validation-for="NgayGiaoDich"></span>
+
+                    </div>
+                    <label class="col-2 col-form-label text-right">Nhân viên giao dịch:</label>
+                    <div class="col-4">
+                        <nop-select asp-for="NhanVienGiaoDichId" asp-items="Model.AvailableNhanVienGiaoDichs" />
+                        <span asp-validation-for="NhanVienGiaoDichId"></span>
+                        
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-2 col-form-label text-right">Diễn giải:</label>
+                    <div class="col-10">
+                        @if (Model.isDieuChinhGia)
+                        {
+                            <div class="col-form-label font-weight-bolder">@Model.MoTa</div>
+                        }
+                        else
+                        {
+                            <nop-textarea asp-for="MoTa" />
+                            <span asp-validation-for="MoTa"></span>
+                        }
+
+                    </div>
+                </div>
+                @if (Model.trangThai == Nop.Core.Domain.KhoHang.TrangThaiGiaoDichKhoHang.NHAP)
+                {
+                    <div class="form-group row mt-5">
+                        <label class="col-2 col-form-label text-right">Danh sách sản phẩm:</label>
+                        <div class="col-10">
+                            <a href="javascript:ShowChonSanPham();" class="btn btn-info mr-2">Tìm và chọn</a><a href="javascript:ImportSanPham();" class="btn btn-primary mr-2">Nhập khẩu từ file</a> [<a href="/template/ds_san_pham_@(Model.loaiGiaoDich.ToString().ToLower()).xlsx" class="font-weight-bold">Tải file mẫu</a>]
+                        </div>
+                    </div>
+                }
+
+
+
+                <div id="tabSanPhams">
+                    @await Html.PartialAsync("_DanhSachSanPhamKiemKe", Model)
+                </div>
+            </div>
+            <!--end::Body-->
+        </div>
+        <!--End::Card-->
+    </div>
+    <!--end::Container-->
+</div>
+<!--end::Entry-->
+<script>
+
+    $(document).ready(function(){
+        LoadTabSanPham();
+    })
+
+    $("#NgayGiaoDich").change(function(){
+        LoadTabSanPham();
+    })
+
+    function ImportSanPham() {
+        var _url = "@(Url.Action("_ImportSanPham", "KhoHang"))?sid=@(Model.SessionId)";
+        var _title = "Nhập khẩu số sản phẩm từ file mẫu";
+        OpenModalManual(_title, _url, "modal-xl");
+    }
+                            function LoadTabSanPham() {
+                                khoHangId = $("#KhoHangId").val()
+                                var NgayGiaoDich = $("#NgayGiaoDich").val() + '';
+        LoadTabContent("@Url.Action("_DanhSachSanPhamKiemKe", "KhoHang")", "tabSanPhams", { "sid": "@Model.SessionId", "tid": @Model.LoaiId, "khoHangId": khoHangId, "date": NgayGiaoDich });
+                            }
+                            function UpdateEventSanPham(dsData, isRefresh) {
+                                var _url = "@(Url.Action("UpdateKhoHangGiaoDichSanPham", "KhoHang"))";
+                                //add them thong tin vao 
+                                var _cusId=$("#@Html.IdFor(model => model.CustomerId)").val();
+                                for(var i=0;i<dsData.length;i++)
+                                {
+                                    dsData[i].LoaiGiaoDichId=@(Model.LoaiId);
+                                    dsData[i].CustomerId=_cusId;
+                                }
+                                var postData = {
+                                    models: dsData
+                                }
+                                addAntiForgeryToken(postData);
+                                $.ajax({
+                                    cache: false,
+                                    type: "POST",
+                                    url: _url,
+                                    data: postData,
+                                    success: function (data, textStatus, jqXHR) {
+                                        if (data.IsSuccess) {
+                                            if (isRefresh)
+                                                LoadTabSanPham();
+                                            else {
+                                                ShowSuccess(data.Message);
+                                            }
+                                        }
+                                        else {
+                                            ShowError(data.Message);
+
+                                        }
+
+                                    },
+                                    complete: function (jqXHR, textStatus) {
+
+                                    }
+                                });
+                            }
+                            function LuuSanPham(Id,pId) {
+                                var soluong = 0;
+                                    if (typeof $($("#pvSoLuong" + Id)).data("kendoNumericTextBox") === 'undefined')
+                                        soluong = parseFloat($($("#pvSoLuong" + Id)).val());
+                                    else
+                                        soluong = parseFloat($($("#pvSoLuong" + Id)).data("kendoNumericTextBox").value());
+                                var postData = [{
+                                    GiaoDichId: @(Model.Id),
+                                    SessionId: "@(Model.SessionId)",
+                                    Id: Id,
+                                    SanPhamId: pId,
+                                    GiaNhap: $("#pvPriceNhapSanPham" + Id).val(),
+                                    SoLuong: soluong
+                                }];
+                                UpdateEventSanPham(postData,false);
+                            }
+                            function XoaSanPham(pId, pTitle) {
+                                if (pTitle.length == 0) {
+                                    $("#lnkChonSanPham_" + pId).show();
+                                    $("#lnkXoaSanPham_" + pId).hide();
+                                     var postData = [{
+                                            GiaoDichId: @(Model.Id),
+                                            SessionId: "@(Model.SessionId)",
+                                            SanPhamId: pId,
+                                            SoLuong: 0
+                                    }];
+                                    UpdateEventSanPham(postData,true);
+                                    return;
+                                }
+                                swal.fire({
+                                    title: "Bạn có chắc chắn không?",
+                                    text: "Bạn đang muốn xóa sản phẩm: " + pTitle +" ra khỏi danh sách?",
+                                    type: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonText: "Đồng ý",
+                                    cancelButtonText: "Thôi!",
+                                    reverseButtons: true
+                                }).then(function (result) {
+                                    if (result.value) {
+
+                                        var postData = [{
+                                            GiaoDichId: @(Model.Id),
+                                            SessionId: "@(Model.SessionId)",
+                                            Id: pId,
+                                            SoLuong: 0
+                                        }];
+                                        UpdateEventSanPham(postData, false);
+                                        $("#giaodich-sanpham-" + pId).remove();
+
+                                    } else if (result.dismiss === "cancel") {
+
+                                    }
+                                });
+                            }
+                            function ThemSanPham(pId) {
+                                var postData = [{
+                                    GiaoDichId: @(Model.Id),
+                                    SessionId: "@(Model.SessionId)",
+                                    SanPhamId: pId,                                    
+                                    SoLuong: 1
+                                }];
+                                $("#lnkChonSanPham_" + pId).hide();
+                                $("#lnkXoaSanPham_" + pId).show();
+                                UpdateEventSanPham(postData,true);
+                            }
+                            function ThemSanPhams(pIds) {
+                                var postDatas = [];
+                                for (var i = 0; i < pIds.length; i++) {
+                                    var postData = {
+                                    GiaoDichId: @(Model.Id),                                    
+                                    SessionId: "@(Model.SessionId)",
+                                    SanPhamId: pIds[i],
+                                    SoLuong: 1
+                                    };
+                                    postDatas.push(postData);
+                                }
+                                if (postDatas.length>0)
+                                    UpdateEventSanPham(postDatas,true);
+                            }
+                            function ShowChonSanPham() {
+                                var pSelecteds = [];
+                                $('input[name="pvSoLuong"]').each(function () {
+                                    var productid = $(this).data("productid");
+                                    pSelecteds.push(productid);
+                                });
+                                var _cusId=$("#@Html.IdFor(model => model.CustomerId)").val();
+                                var _url = "@(Url.Action("_ChonSanPham", "SearchComplete"))?ActionTypeId=@((int)Nop.Web.Areas.Admin.Models.Catalog.ChonSanPhamActionType.GIAO_DICH_KHO_HANG)&CustomerId="+_cusId+"&isGiaNhap=false&ptypeId=@((int)Nop.Core.Domain.Catalog.ProductType.SimpleProduct)&pSelecteds=" + pSelecteds.join();
+                                var _title = "Chọn sản phẩm";
+                                OpenModalManual(_title, _url, "modal-xl");
+                            }
+                            function BindJsonSanPhamModels() {
+                                var items = [];
+                                $('input[name="pvSoLuong"]').each(function () {
+                                    var itemid = $(this).data("itemid");
+                                    var productid = $(this).data("productid");
+                                    var soluong = 0;
+                                    if (typeof $(this).data("kendoNumericTextBox") === 'undefined')
+                                        soluong = parseFloat($(this).val());
+                                    else
+                                        soluong = parseFloat($(this).data("kendoNumericTextBox").value());
+
+                                    var item = {
+                                        GiaoDichId: @(Model.Id),
+                                        SessionId: "@(Model.SessionId)",
+                                        LoaiGiaoDichId:@(Model.LoaiId),
+                                        Id: itemid,
+                                        SanPhamId: productid,
+                                        SoLuong: soluong,
+                                        GiaNhap: $("#pvPriceNhapSanPham" + itemid).val(),
+                                    };
+                                    items.push(item);
+                                });
+
+                                $("#@Html.IdFor(model => model.JsonSanPhamModels)").val(JSON.stringify(items));
+                            }
+                            function CapNhatTrangThai(trangthaiid, title) {
+                                swal.fire({
+                                    title: "Bạn có chắc chắn không?",
+                                    text: title,
+                                    type: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonText: "Đồng ý",
+                                    cancelButtonText: "Thôi!",
+                                    reverseButtons: true
+                                }).then(function (result) {
+                                    if (result.value) {
+
+                                        var postData = {
+                                            Id: @(Model.Id),
+                                            SessionId: "@(Model.SessionId)",
+                                            TrangThaiId: trangthaiid,
+                                            NhanVienGiaoDichId: $("#NhanVienGiaoDichId").val(),
+                                            NgayGiaoDich: $("#NgayGiaoDich").val()
+                                            };
+                                        addAntiForgeryToken(postData);
+                                        $.ajax({
+                                            cache: false,
+                                            type: "POST",
+                                            url: "@(Url.Action("UpdateKhoHangGiaoDichTrangThai", "KhoHang"))",
+                                            data: postData,
+                                            success: function (data, textStatus, jqXHR) {
+                                                if (data.IsSuccess) {
+                                                    ShowSuccess(data.Message);
+                            document.location.href = "/MAR/KhoHang/QLGiaoDich?tid=5";
+                                                }
+                                                else {
+                                                    ShowError(data.Message);
+
+                                                }
+
+                                            },
+                                            complete: function (jqXHR, textStatus) {
+
+                                            }
+                                        });
+
+                                    } else if (result.dismiss === "cancel") {
+
+                                    }
+                                });
+    }
+    function ThayDoiGiaTri() {
+        var _tongsl = 0;
+        var _tonggianhap = 0;
+        var _tonggiaban = 0;
+        $('input[name="pvSoLuong"]').each(function () {
+            var itemid = $(this).data("itemid");
+            var giaban = parseInt($(this).data("giaban"));
+            var gianhap = parseInt($("#pvPriceNhapSanPham" + itemid).val());
+            var soluong = 0;
+            if (typeof $(this).data("kendoNumericTextBox") === 'undefined')
+                soluong = parseFloat($(this).val());
+            else
+                soluong = parseFloat($(this).data("kendoNumericTextBox").value());
+            var tonggianhap = gianhap * soluong;
+            var tonggiaban = giaban * soluong;
+            _tongsl = _tongsl + soluong;
+            _tonggianhap = _tonggianhap + tonggianhap;
+            _tonggiaban = _tonggiaban + tonggiaban;
+            $("#lbGiaNhapItem" + itemid).html(tonggianhap.formatPrice());
+            $("#lbGiaBanItem" + itemid).html(tonggiaban.formatPrice());
+
+        });
+        $("#lbTongSoLuong").html(_tongsl);
+        $("#lbThanhTien").html(_tonggianhap.formatPrice());
+        $("#lbTongGiaBan").html(_tonggiaban.formatPrice());
+        var giamgia = parseInt($("#@Html.IdFor(model => model.ChietKhauTrucTiep)").val());
+        _tonggianhap = _tonggianhap - giamgia;
+        $("#lbTienPhaiThanhToan").html(_tonggianhap.formatPrice());
+
+    }
+                            $(document).ready(function () {
+                                $("#btnLuu").click(function () {
+                                    BindJsonSanPhamModels();
+                                });
+                                $("#btnLuuVaTiepTuc").click(function () {
+                                    BindJsonSanPhamModels();
+                                })
+                            });
+</script>

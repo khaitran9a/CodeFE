@@ -1,0 +1,9 @@
+﻿@model InMaVachModel
+@{
+    Layout = "_MARLayoutPrint";
+}
+
+@await Html.PartialAsync("_PhieuMaVach", Model)
+<script type='text/javascript'>
+    window.print();
+</script>

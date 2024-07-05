@@ -1,0 +1,98 @@
+﻿@model InMaVachModel
+
+@{
+    var paperWidth = Model.BWidth.ToString()+ "mm";
+    var paperHeight = Model.Height.ToString() + "mm";
+    int tile = 0;
+    if (Model.Height > 0)
+    {
+        tile = (int)Math.Round((double)(Model.BWidth / Model.Height));
+
+    }
+    var currentDate = DateTime.Now.toDateVNString();
+}
+    <link rel="shortcut icon" href="/favicon.ico?v1" type="image/x-icon" />
+
+    <style>
+        .barcode {
+            width: 100%;
+            margin: auto;
+            text-align: center;
+            margin-bottom: 5px;
+            margin-left: 0;
+        margin-right: 0;
+		page-break-before: always;
+        }
+
+        .barcode h1 {
+            margin-bottom:4px;
+            font-size: 80px;
+            font-family: Arial, Helvetica, sans-serif;
+            left: auto;
+            width: 100%;
+            text-align: center;
+        }
+
+        .barcode h2 {
+            margin-bottom: 0px;
+            font-size: 50px;
+            font-family: Arial, Helvetica, sans-serif;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .barcode h3 {
+            text-align: left;
+            margin-top: 150px;
+            margin-left: 80px;
+            font-size: 45px;
+        }
+
+    .barcode {
+        position: relative;
+    }
+
+        .barcode h1, .barcode h2, .barcode h3 {
+            position: absolute;
+        }
+
+        .barcode h1 {
+            top: 0px; 
+            z-index:999;
+        }
+
+        .barcode h2 {
+/*            bottom: -12%; 
+*/            z-index: 999;
+        }
+
+
+        .barcode__img {
+            width: 50%;
+            margin: auto;
+    }
+    </style>
+@if (Model.ListMaVach.Count > 0)
+{
+    foreach (var item in Model.ListMaVach)
+    {
+        var translateValue = 7;
+        var translateImg = 33;
+        var bottomH2 = -43;
+        if (item.TenSanPham.Length > 40)
+        {
+            translateValue = 7;
+            translateImg = 33;
+            bottomH2 = -43;
+        }
+       
+        <div class="barcode" style="transform: translateY(@translateValue%);">
+            <h1 class=" text-font-weight">@item.TenSanPham</h1>
+            <img class="barcode__img" src="/Workfiles/QRCode?c=@item.Ma" style="transform: translateY(@translateImg%)" />
+            <h3>@currentDate</h3>
+            <h2 class=" text-font-weight" style=" bottom: @bottomH2%">@item.Ma</h2>
+        </div>
+    }
+}
+
+

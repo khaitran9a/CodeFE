@@ -1,0 +1,198 @@
+﻿@using Nop.Web.Areas.CRM.Models.Zalo
+@model ZNSModel
+@{
+
+	Html.SetActiveMenuItemSystemName("CRM.ZaloOA.ListBroadCast");
+
+}
+
+@{
+
+	int _stt = 1;
+}
+
+
+
+<nop-antiforgery-token />
+<!--begin::Subheader-->
+<div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+	<div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+		<!--begin::Details-->
+		<div class="d-flex align-items-center flex-wrap mr-2">
+			<!--begin::Title-->
+			<h5 class="text-dark font-weight-bold mt-2 mb-2 mr-5">Danh sách tin ZNS - <strong class="text-primary">@Model.AppName</strong></h5>
+			<!--end::Title-->
+			<!--begin::Separator-->
+			<div class="subheader-separator subheader-separator-ver mt-2 mb-2 mr-5 bg-gray-200"></div>
+			<!--end::Separator-->
+			<!--begin::Search Form-->
+			<div class="d-flex align-items-center" id="kt_subheader_search">
+				<span class="text-dark-50 font-weight-bold" id="kt_subheader_total"></span>
+			</div>
+			<!--end::Search Form-->
+
+		</div>
+		<!--end::Details-->
+		<!--begin::Toolbar-->
+		<div class="d-flex align-items-center">
+			<!--begin::Button-->
+			<!--end::Button-->
+		</div>
+		<!--end::Toolbar-->
+	</div>
+</div>
+<!--end::Subheader-->
+<!--begin::Entry-->
+<div class="d-flex flex-column-fluid">
+	<!--begin::Container-->
+	<div class="container">
+		<!--begin::Card-->
+		<div class="card card-custom gutter-b">
+			<!--Begin::Body-->
+			<div class="card-body">
+				<div class="form-group row">
+				</div>
+				<div class="dataTables_wrapper dt-bootstrap4 no-footer">
+					<div class="row">
+						<div class="col-md-12">
+							<div class="dataTables_scroll">
+
+								<div class="" style="position: relative;  width: 100%;">
+									<table class="table table-striped- table-bordered table-hover dataTable no-footer" style="width: 100%;" role="grid">
+										<thead>
+											<tr role="row">
+
+												<th class="sorting_disabled text-center" rowspan="1" colspan="1" style="">STT</th>
+												<th class="sorting_disabled text-center" rowspan="1" colspan="1" style="">Id</th>
+												<th class="sorting_disabled text-center" rowspan="1" colspan="1" style="">Tên</th>
+												<th class="sorting_disabled text-center" rowspan="1" colspan="1" style="">Trạng thái</th>
+												<th class="sorting_disabled text-center" rowspan="1" colspan="1" style="">Thông tin</th>
+												<th class="sorting_disabled text-center" rowspan="1" colspan="1" style="">Cấu hình</th>
+											</tr>
+										</thead>
+										<tbody>
+											@foreach (var item in Model.templates)
+											{
+												<tr role="row" class="odd" style="vertical-align: middle;">
+													<td style="text-align:center">
+														@(_stt++)
+													</td>
+													<td style="text-align:center">
+														@item.TeamplateId
+													</td>
+													<td class="" style="text-align:left;">
+														@item.TeamplateName
+													</td>
+													<td class="" style="text-align:center;">
+														@item.Status
+													</td>
+													<td class="" style="text-align:left;">
+														Loại đối tượng: @item.Loai.ToString() <br />
+														@switch (item.LoaiId)
+														{
+															case (int)Nop.ServiceExtents.ZaloOA.LoaiDoiTuongTinZnsEnum.Order:
+																<text>
+																	Trạng thái đơn: @item.OrderStatus
+																</text>
+																break;
+															case (int)Nop.ServiceExtents.ZaloOA.LoaiDoiTuongTinZnsEnum.TeleSale:
+																<text>
+																	Trạng thái khách hàng telesale: @item.trangThai
+																</text>
+																break;
+															default:
+																<text>
+																	Loại đối tượng không được hỗ trợ
+																</text>
+																break;
+														}
+													</td>
+													<td class="" style="text-align:center;">
+														<a href="javascript:CauHinh(@item.TeamplateId, '@item.TeamplateName');" class="ml-3 btn btn-sm btn-success btn-bold">
+															<i class="kt-nav__link-icon flaticon2-settings"></i>
+															Sửa
+														</a>
+														<a href="javascript:XoaCauHinh(@item.TeamplateId);" class="ml-3 btn btn-sm btn-danger btn-bold">
+															<i class="kt-nav__link-icon flaticon-signs-2"></i>
+															Xóa
+														</a>
+
+														<script>
+															function CauHinh(tid, tname) {
+																var _url = '@Url.Action("_CauHinhZns", "ZaloOA")' + '?tid=' + encodeURIComponent(tid);
+																var _title = "Cấu hình gửi tin Zns | " + tname ;
+																OpenModalManual(_title, _url, "modal-m");
+
+															}
+														</script>
+														
+														<script>
+															function XoaCauHinh(tid) {
+																
+																swal.fire({
+																	title: "Bạn có chắc chắn không?",
+																	text: 'Bạn chắc chắn muốn cài đặt lại cấu hình gửi tin của tin zns này chứ?',
+																	type: "warning",
+																	showCancelButton: true,
+																	confirmButtonText: "Đồng ý",
+																	cancelButtonText: "Thôi!",
+																	reverseButtons: true
+																}).then(function (result) {
+																	if (result.value) {
+																		var postData = { tid: tid };
+																		addAntiForgeryToken(postData);
+
+																		$.ajax({
+																			url: '@Url.Action("_XoaCauHinhZns", "ZaloOA")',
+																			type: 'Post',
+																			data: postData,
+																			success: function (data, textStatus, jqXHR) {
+																				if (data.IsSuccess) {
+																					ShowSuccess(data.Message);
+																					window.location.reload();
+																				}
+																				else {
+																					ShowError(data.Message);
+																				}
+
+																			},
+																			complete: function (jqXHR, textStatus) {
+
+																			}
+																		});
+																	}
+																	});
+																}
+
+																														
+														</script>
+													</td>
+												</tr>
+											}
+
+											@if (Model.templates == null || Model.templates.Count == 0)
+											{
+												<text>
+												<tr>
+													<td colspan="7" class="text-center text-info">Không có dữ liệu được tìm thấy!</td>
+												</tr>
+												</text>
+											}
+
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!--end::Body-->
+		</div>
+		<!--end::Card-->
+	</div>
+	<!--end::Container-->
+</div>
+
+<hr />
+

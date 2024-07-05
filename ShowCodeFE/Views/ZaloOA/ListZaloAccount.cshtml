@@ -1,0 +1,230 @@
+﻿@using Nop.Web.Areas.CRM.Models.Zalo
+@using Nop.Web.Framework.Models.DataTables;
+@model ZaloAccountSearchModel
+@{
+   
+    Html.SetActiveMenuItemSystemName("CRM.ZaloOA.Account");
+   
+}
+<nop-antiforgery-token />
+@*<form asp-controller="HeThong" asp-action="ListSanPham" method="post">*@
+<!--begin::Subheader-->
+<div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+    <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+        <!--begin::Details-->
+        <div class="d-flex align-items-center flex-wrap mr-2">
+            <!--begin::Title-->
+            <h5 class="text-dark font-weight-bold mt-2 mb-2 mr-5">Danh sách tài khoản ZaloOA</h5>
+            <!--end::Title-->
+            <!--begin::Separator-->
+            <div class="subheader-separator subheader-separator-ver mt-2 mb-2 mr-5 bg-gray-200"></div>
+            <!--end::Separator-->
+            <!--begin::Search Form-->
+            <div class="d-flex align-items-center" id="kt_subheader_search">
+                <span class="text-dark-50 font-weight-bold" id="kt_subheader_total"></span>
+            </div>
+            <!--end::Search Form-->
+
+        </div>
+        <!--end::Details-->
+        <!--begin::Toolbar-->
+        <div class="d-flex align-items-center">
+            <!--begin::Button-->
+            <!--end::Button-->
+        </div>
+        <!--end::Toolbar-->
+    </div>
+</div>
+<!--end::Subheader-->
+<!--begin::Entry-->
+<div class="d-flex flex-column-fluid">
+    <!--begin::Container-->
+    <div class="container">
+        <!--begin::Card-->
+        <div class="card card-custom gutter-b">
+            <!--Begin::Body-->
+            <div class="card-body">
+                <div class="form-group row">
+                    <div class="col-md-4">
+                        <nop-editor asp-for="SearchKeyWord" placeholder="Từ khóa tìm kiếm (tên hoặc AppId)..." />
+                    </div>
+                   @* <div class="col-md-4">
+                        <nop-select asp-for ="Ac" asp-items="Model.AvailableActives" />
+                    </div>*@
+                    <div class="col-md-2">
+                        <button type="button" id="search-accounts" class="btn btn-primary  mr-2"> <i class="fa fa-search"></i> Tìm kiếm </button>
+                     </div>
+                    <div class="col-md-6">
+                        <a href="javascript:ThemMoiAccount();" class="ml-3 btn btn-success btn-bold float-right">
+                            <i class="kt-nav__link-icon flaticon2-add"></i>
+                            Thêm mới
+                        </a>
+                        <script>
+                            function ThemMoiAccount() {
+                                var _url = "@(Url.Action("_ThemMoiZaloAccount", "ZaloOA"))";
+                                var _title = "Thêm mới tài khoản OA";
+                                OpenModalManual(_title, _url, "modal-m");
+
+                            }
+                        </script>
+                    </div>
+
+                </div>
+
+                @{
+                    var gridModel = new DataTablesModel
+            {
+                Name = "zaloAccounts-grid",
+                UrlRead = new DataUrl("ListAccount", "ZaLoOA", null),
+                SearchButtonId = "search-accounts",
+                Length = Model.PageSize,
+                LengthMenu = Model.AvailablePageSizes,
+                Filters = new List<FilterParameter>
+                {
+                new FilterParameter(nameof(Model.SearchKeyWord)),
+               
+                }
+            };
+                    gridModel.ColumnCollection = new List<ColumnProperty>
+                    {
+
+                    };
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(ZaloAccountModel.Name))
+                    {
+                        Title = "Tên",
+                        Width = "100"
+                    });
+                 
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(ZaloAccountModel.AppId))
+                    {
+                        Title = "AppId",
+                        Width = "80"
+                    });
+                     gridModel.ColumnCollection.Add(new ColumnProperty(nameof(ZaloAccountModel.Active))
+                    {
+                        Title = "Được sử dụng",
+                        Width = "70",
+                        ClassName="Text-Center",
+                        Render = new RenderCustom("renderColumnActive")
+
+                    });
+                    gridModel.ColumnCollection.Add(new ColumnProperty(nameof(ZaloAccountModel.Active))
+                    {
+                        Title = "Thao tác",
+                        Width = "120",
+                        Render = new RenderCustom("renderColumnThaoTac")
+                    });
+                }
+                @await Html.PartialAsync("Table", gridModel)
+
+                <script>
+                    function renderColumnActive(data, type, row, meta) {
+                        var html = "";
+                        if(row.Active)
+                        {
+                            html = html + '<i class="icon-xl fas fa-check text-success"></i>'
+                        }
+                        else
+                        {
+                            html = html + '<i class="icon-xl fas fa-window-close text-danger"></i>'
+
+                        }
+                        return html;
+                    }
+                    function renderColumnThaoTac(data, type, row, meta) {
+                        var _html = '';
+                        _html = _html + '<a href="javascript:UpdateAccount(' + row.Id + ');" class="ml-2 btn btn-icon btn-light btn-hover-primary btn-sm"><i class="flaticon-edit-1 text-success"></i></a><strong class="m-2 text-danger">|</srong>'
+                        _html = _html + '    <a class="text-info text-hover-warning font-italic" data-toggle="collapse" href="#tabChiTietCacTin' + row.Id + '" role="button" aria-expanded="false" aria-controls="tabOrderItems' + row.Id + '">'
+                        _html = _html + '        [Chi tiết các loại tin]'
+                        _html = _html + '</a>'
+                        _html = _html + '</div>'
+                        _html = _html + '<div class="collapse" id="tabChiTietCacTin' + row.Id + '">';
+                        _html = _html + '<div class="separator separator-solid separator-info"></div>';
+                        _html = _html + '<ul class="list-group">'
+                        _html += '<li class="list-group-item"><a href="@Url.Action("ListBroadCast", "ZaloOA")?accountId=' + row.Id + '" class="ml-2 pt-2" target="_blank" >Tin Broadcast</a></li>';
+                        _html = _html + ' <li class="list-group-item"><a href="@Url.Action("ListZnsTemplate", "ZaloOA")?accountId=' + row.Id + '" class="ml-2 pt-2" target="_blank">Tin ZNS</a></li>'
+                        _html = _html + '</ul>';
+                        _html = _html + '</div>';
+
+                        return _html;
+                    }
+                    function renderColumnAccessToken(data, type, row, meta) {
+                        var truncatedData = data.substring(0, 40);
+                        var fullData = data;
+                        var _html = '<div style="position:relative">';
+
+                        _html = _html + '<a href="javascript:void(0);" data-clipboard="true" data-clipboard-text="' + data + '" style="position:absolute;top:-12px;left:-12px;" title="Copy Token" ><i class="la la-copy"></i></a>';
+
+
+                        _html += '<div>';
+                        _html += '<span class="truncated">' + truncatedData + '</span>';
+                        _html += '<a class="text-danger show-full-data" href="javascript:void(0)">...</a>';
+                        _html += '<a class="text-danger hide-full-data" href="javascript:void(0)" style="display:none;">Ẩn </br></a>';
+                        _html += '<span class="full-data" style="display: none;">' + fullData + '</span>';
+                        _html += '</div>';
+                        _html += '</div>';
+
+                        return _html;
+                    };
+
+                    document.addEventListener('click', function (event) {
+                        var target = event.target;
+                        if (target.classList.contains('show-full-data')) {
+                            var parentDiv = target.parentNode;
+                            var truncatedSpan = parentDiv.querySelector('.truncated');
+                            var fullDataSpan = parentDiv.querySelector('.full-data');
+                            var hideLink = parentDiv.querySelector('.hide-full-data');
+
+                            truncatedSpan.style.display = 'none';
+                            fullDataSpan.style.display = 'inline';
+                            hideLink.style.display = 'inline';
+                            target.style.display = 'none';
+
+                            event.preventDefault();
+                        } else if (target.classList.contains('hide-full-data')) {
+                            var parentDiv = target.parentNode;
+                            var truncatedSpan = parentDiv.querySelector('.truncated');
+                            var fullDataSpan = parentDiv.querySelector('.full-data');
+                            var showLink = parentDiv.querySelector('.show-full-data');
+
+                            truncatedSpan.style.display = 'inline';
+                            fullDataSpan.style.display = 'none';
+                            showLink.style.display = 'inline';
+                            target.style.display = 'none';
+
+                            event.preventDefault();
+                        }
+                    });
+
+                    function UpdateAccount(id) {
+                        var _url = "@(Url.Action("_ThemMoiZaloAccount", "ZaloOA"))?Id=" + id;
+                        var _title = "Chỉnh sửa tài khoản OA";
+                        OpenModalManual(_title, _url, "modal-m");
+
+                    }
+                    $(document).ready(function () {
+                        // Start of document ready function
+
+                        new ClipboardJS('[data-clipboard=true]').on('success', function (e) {
+                            // Start of ClipboardJS success event handler
+
+                            $(e.trigger).html('<i class="la la-check text-success"></i>');
+                            e.clearSelection();
+                            setTimeout(function () {
+                                $(e.trigger).html('<i class="la la-copy"></i>');
+                            }, 2000);
+
+                            // End of ClipboardJS success event handler
+                        });
+
+                        // End of document ready function
+                    });
+
+                </script>
+            </div>
+            <!--end::Body-->
+        </div>
+        <!--end::Card-->
+    </div>
+    <!--end::Container-->
+</div>

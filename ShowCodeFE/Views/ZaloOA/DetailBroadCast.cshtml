@@ -1,0 +1,187 @@
+﻿@using Nop.Web.Areas.CRM.Models.Zalo
+@model Article
+
+<nop-antiforgery-token />
+@*<form asp-controller="HeThong" asp-action="ListSanPham" method="post">*@
+<!--begin::Subheader-->
+<div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+    <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+        <!--begin::Details-->
+        <div class="d-flex align-items-center flex-wrap mr-2">
+            <!--begin::Title-->
+            <h5 class="text-dark font-weight-bold mt-2 mb-2 mr-5">Danh sách tài khoản ZaloOA</h5>
+            <!--end::Title-->
+            <!--begin::Separator-->
+            <div class="subheader-separator subheader-separator-ver mt-2 mb-2 mr-5 bg-gray-200"></div>
+            <!--end::Separator-->
+            <!--begin::Search Form-->
+            <div class="d-flex align-items-center" id="kt_subheader_search">
+                <span class="text-dark-50 font-weight-bold" id="kt_subheader_total"></span>
+            </div>
+            <!--end::Search Form-->
+
+        </div>
+        <!--end::Details-->
+        <!--begin::Toolbar-->
+        <div class="d-flex align-items-center">
+            <!--begin::Button-->
+            <!--end::Button-->
+        </div>
+        <!--end::Toolbar-->
+    </div>
+</div>
+<!--end::Subheader-->
+<!--begin::Entry-->
+<div class="d-flex flex-column-fluid">
+    <!--begin::Container-->
+    <div class="container">
+        <!--begin::Card-->
+
+        <div class="card card-custom gutter-b">
+            <div class="row flex-row">
+                <!-- Phần đầu tiên -->
+                <div class="col-lg-5 border-right">
+                    <div class="card-body">
+                        <div class="form-group row">
+                            <input asp-for="SendBroadCastDto.ZaloAccountId" type="hidden" />
+                            <input asp-for="SendBroadCastDto.ArticleId" type="hidden" />
+
+                            <label class="col-3 col-form-label text-right">Độ tuổi:</label>
+                            <div class="col-9">
+                                <nop-select asp-for="SendBroadCastDto.recipient.target.ages" asp-items="@Model.SendBroadCastDto.recipient.AvailableAges"/>
+                                <span asp-validation-for="SendBroadCastDto.recipient.target.ages"></span>
+                            </div>
+                           
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-3 col-form-label text-right">Giới tính:</label>
+                            <div class="col-9">
+                                <nop-select asp-for="SendBroadCastDto.recipient.target.gender" asp-items="@Model.SendBroadCastDto.recipient.AvailableGenders"/>
+                                <span asp-validation-for="SendBroadCastDto.recipient.target.gender"></span>
+                            </div>
+                           
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-3 col-form-label text-right">Vùng miền:</label>
+                            <div class="col-9">
+                                <nop-select asp-for="SendBroadCastDto.recipient.target.locations" asp-items="@Model.SendBroadCastDto.recipient.AvailableLocations" />
+                                <span asp-validation-for="SendBroadCastDto.recipient.target.locations"></span>
+                            </div>
+                           
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-3 col-form-label text-right">Tỉnh/thành phố:</label>
+                            <div class="col-9">
+                                <nop-select asp-for="SendBroadCastDto.recipient.target.cities" asp-items="@Model.SendBroadCastDto.recipient.AvailableCities" />
+                                <span asp-validation-for="SendBroadCastDto.recipient.target.cities"></span>
+                            </div>
+                           
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-3 col-form-label text-right">Nền tảng:</label>
+                            <div class="col-9">
+                                <nop-select asp-for="SendBroadCastDto.recipient.target.platform" asp-items="@Model.SendBroadCastDto.recipient.AvailablePlatform" />
+                                <span asp-validation-for="SendBroadCastDto.recipient.target.platform"></span>
+                            </div>
+
+                        </div>
+                       
+                        <div class="form-group row">
+                            <div class="col-md-12 text-right">
+                               
+                                 
+                                
+
+                                <a class="btn btn-secondary font-weight-bold mr-2" href="./">
+                                    <i class="flaticon2-delete"></i>
+                                    Quay lại danh sách
+                                </a>
+                                <button id="btnSave" class="btn btn-primary font-weight-bold mr-5">
+                                    <i class="flaticon-interface-5"></i>
+                                    Lưu thông tin
+
+                                </button>
+
+                                <script>
+                                    $(document).ready(function () {
+                                        $("#btnSave").click(function (event) {
+                                            event.preventDefault();
+                                            var postData = {
+                                                ZaloAccountId: $("#SendBroadCastDto_ZaloAccountId").val(),
+                                                ArticleId: $("#SendBroadCastDto_ArticleId").val(),
+                                                recipient: {
+                                                    target: 
+                                                    {
+                                                        ages: $("#SendBroadCastDto_recipient_target_ages").val(),
+                                                        gender: $("#SendBroadCastDto_recipient_target_gender").val(),
+                                                        locations: $("#SendBroadCastDto_recipient_target_locations").val(),
+                                                        cities: $("#SendBroadCastDto_recipient_target_cities").val(),
+                                                        platform: $("#SendBroadCastDto_recipient_target_platform").val()
+                                                    }
+                                                    
+                                                }
+                                            };
+
+                                            addAntiForgeryToken(postData);
+
+                                            $.ajax({
+                                                cache: false,
+                                                type: "POST",
+                                                url: "@Url.Action("SendBroadCast", "ZaloOA")",
+                                                data: postData,
+                                                success: function (data, textStatus, jqXHR) {
+                                                    if (data.IsSuccess) {
+                                                        ShowSuccess(data.Message);
+                                                        $("#search-products-select").click();
+                                                        CloseModalManual();
+                                                    }
+                                                    else {
+                                                        ShowError(data.ErrorMessage);
+                                                    }
+                                                },
+                                                complete: function (jqXHR, textStatus) {
+
+                                                }
+                                            });
+                                        });
+
+                                    });
+                                </script>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- Phần thứ hai -->
+                <div class="col-lg-7">
+                    <div class="card-body col-lg-10 m-auto">
+                        <div class="form-group row">
+                            <img style="max-width: 100%; height: auto;" src="@Model.Cover.PhotoUrl" alt="Ảnh" />
+                        </div>
+                        <div class="form-group row">
+                            <h3 class="text-dark font-weight-bold"><strong>@Model.Title</strong></h3>
+                            <h6 class="font-weight-bold"><strong>@Model.Description</strong></h6>
+                        </div>
+                        @foreach(var itemBody in Model.Body)
+                        {
+                            <div class="form-group row">
+
+                                @Html.Raw(@itemBody.Content)
+                                
+                            </div>
+                        }
+                        <div class="form-group row">
+                            <a class="link-primary font-weight-bold" href="@Model.LinkView"><strong>@Model.LinkView</strong></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!--end::Card-->
+    </div>
+    <!--end::Container-->
+</div>

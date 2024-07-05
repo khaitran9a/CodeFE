@@ -1,0 +1,130 @@
+﻿@model KhoHangGiaoDichModel
+
+<style>
+    .tagify {
+        min-height: 40px !important;
+        resize: vertical;
+    }
+</style>
+<input id="kt_tagify_3" name='tags-outside' placeholder="Nhập mã vạch" class='form-control tagify tagify--outside'
+@if (Model.ListMaVach != null)
+{
+    <text>value="@string.Join(", ", Model.ListMaVach.Select(ct => ct))"</text>
+}
+else
+{
+    <text>value=""</text>
+} />
+<a class="text-secondary" href="javascript:LoadInputMaVach(true);">Ẩn bớt</a>/
+<a class=" text-success" href="javascript:LoadInputMaVach(false);">Hiện tất cả</a>
+<lable class="col-lg-12 text-right text-danger">
+    (*)Chú ý: phải chọn kho hàng chuyển và nhấn nút lưu trước khi quét mã vạch.
+</lable>
+
+<script>
+
+    var KTTagify = function () {
+
+        // Private functions
+        var demo4 = function () {
+            var input = document.getElementById('kt_tagify_3');
+            var tagify = new Tagify(input, {
+                pattern: /^.{1,30}$/,
+                delimiters: ", ",
+                keepInvalidTags: true,
+                duplicates: true,
+                transformTag: transformTag,
+                dropdown: {
+                    enabled: 3,
+                },
+               callbacks: {
+                    add: function (e) {
+                        saveMaVach(e.detail.data.value, @Model.Id)
+                    },
+                    remove: function (e) {
+                        deleteMaVach(e.detail.data.value, @Model.Id)
+                    }
+                }
+            });
+            tagify.on("afterAddTag", function (tag) {
+                LoadInputMaVach(true);
+            });
+            tagify.on("afterRemoveTag", function (tag) {
+                LoadInputMaVach(true);
+            });
+
+            function transformTag(tagData) {
+                var states = [
+                    'success',
+                    'warning',
+                    'primary',
+                    'danger',
+                    'info'];
+                tagData.class = 'tagify__tag tagify__tag--' + states[KTUtil.getRandomInt(0, 4)];
+            }
+
+        }
+        return {
+            // public functions
+            init: function () {
+                demo4();
+            }
+        };
+    }();
+
+    jQuery(document).ready(function () {
+        KTTagify.init();
+    });
+
+
+
+
+    function saveMaVach(tags, gdid) {
+        var wid = $("#WarehouseId").val();
+        var _data = { tags: tags, giaodichid: gdid, wid: wid }
+        addAntiForgeryToken(_data);
+        $.ajax({
+            url: "@(Url.Action("ThemSanPhamTuMaVach", "KhoHang"))",
+            cache: false,
+            type: 'POST',
+            data: _data,
+            success: function (result) {
+                if (result.success) {
+                    ShowSuccess(result.Message);
+                    LoadTabSanPham();
+                }
+                else {
+                    ShowError(result.Message);
+                    LoadInputMaVach(true);
+                }
+            },
+            error: function (error) {
+                // Xử lý lỗi nếu có
+            }
+        });
+    }
+
+
+    function deleteMaVach(tags, gdid) {
+        var _data = { tags: tags, giaodichid: gdid }
+        addAntiForgeryToken(_data);
+        $.ajax({
+            url: "@(Url.Action("XoaSanPhamTuMaVach", "KhoHang"))",
+            cache: false,
+            type: 'POST',
+            data: _data,
+            success: function (result) {
+                if (result.success) {
+
+                    LoadTabSanPham();
+
+                    document.getElementById("kt_tagify_3").focus({ focusVisible: true });
+                }
+
+            },
+            error: function (error) {
+                // Xử lý lỗi nếu có
+            }
+        });
+    }
+</script>

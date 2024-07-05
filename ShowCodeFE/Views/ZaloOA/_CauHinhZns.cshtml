@@ -1,0 +1,181 @@
+﻿@using Nop.Web.Areas.CRM.Models.Zalo;
+@model CauHinhZnsModel
+
+
+<div class="d-flex flex-column-fluid">
+    <!--begin::Container-->
+    <div class="container">
+        <!--Begin::Card-->
+        <div class="card card-custom gutter-b">
+            <!--Begin::Body-->
+            <div class="card-body">
+                <input asp-for="TemplateId" type="hidden" />
+
+                <div class="form-group row">
+                    <label class="col-4 col-form-label text-required">Loại:</label>
+                    <div class="col-8">
+                        <nop-select asp-for="LoaiId" asp-items="Model.AvailableLoai" />
+                        <span asp-validation-for="LoaiId"></span>
+                    </div>
+                </div>
+                @{
+                    string dynamicDonClass = "div-Don" + Model.TemplateId;
+                    string dynamicTelesaleClass = "div-Telesale" + Model.TemplateId;
+
+                }
+                <div class="form-group row @dynamicDonClass">
+                    <label class="col-4 col-form-label text-required">Trạng thái đơn hàng:</label>
+                    <div class="col-8">
+                        <nop-select asp-for="OrderStatusId" asp-items="Model.AvailableOrderStatuses" />
+                        <span asp-validation-for="OrderStatusId"></span>
+                    </div>
+                </div>
+
+                <div class="form-group row @dynamicTelesaleClass">
+                    <label class="col-4 col-form-label text-required">Trạng thái telesale:</label>
+                    <div class="col-8">
+                        <nop-select asp-for="TrangThaiId" asp-items="Model.AvailableTrangThaiTeleSale" />
+                        <span asp-validation-for="TrangThaiId"></span>
+                    </div>
+                </div>
+@*
+                <script>
+                    $(document).ready(function () {
+                        $('.div-Don').hide();
+                        $('.div-Telesale').hide();
+                        var loaiid = $("#LoaiId").val();
+                        if(loaiid === '1'){
+                            $('.div-Don').show();
+                            $('.div-Telesale').hide();
+                        }
+                        else if (selectedValue === '2') {
+                            $('.div-Don').hide();
+                            $('.div-Telesale').show();
+                        } else {
+                            $('.div-Don').hide();
+                            $('.div-Telesale').hide();
+                        }
+                        $('select[name="LoaiId"]').change(function () {
+                            var selectedValue = $(this).val(); 
+
+                            if (selectedValue === '1') {
+                                $('.div-Don').show();
+                                $('.div-Telesale').hide();
+
+                            } else if (selectedValue === '2') {
+                                $('.div-Don').hide();
+                                $('.div-Telesale').show();
+                            } else {
+                                $('.div-Don').hide();
+                                $('.div-Telesale').hide();
+                            }
+                        });
+                    });
+                </script>*@
+                <script>
+                    $(document).ready(function () {
+                        $('.@dynamicDonClass').hide();
+                        $('.@dynamicTelesaleClass').hide();
+
+                        $('select[name="LoaiId"]').change(function () {
+                            var selectedValue = $(this).val();
+
+                            if (selectedValue === '1') {
+                                $('.@dynamicDonClass').show();      
+                                $('.@dynamicTelesaleClass').hide(); 
+                            } else if (selectedValue === '2') {
+                                $('.@dynamicDonClass').hide();      
+                                $('.@dynamicTelesaleClass').show(); 
+                            } else {
+                                $('.@dynamicDonClass').hide();
+                                $('.@dynamicTelesaleClass').hide();
+                            }
+                        });
+
+                        // Hiển thị các div mặc định dựa trên giá trị ban đầu của LoaiId (nếu cần)
+                        var initialSelectedValue = $('select[name="LoaiId"]').val();
+                        if (initialSelectedValue === '1') {
+                            $('.@dynamicDonClass').show();      
+                            $('.@dynamicTelesaleClass').hide(); 
+                        } else if (initialSelectedValue === '2') {
+                            $('.@dynamicDonClass').hide();      
+                            $('.@dynamicTelesaleClass').show(); 
+                        } else {
+                            
+                            $('.@dynamicDonClass').hide();
+                            $('.@dynamicTelesaleClass').hide();
+                        }
+                    });
+                </script>
+
+
+
+
+                <div class="form-group row">
+                    <div class="col-md-12 text-center">
+                       
+                            <button id="btnLuu" class="btn btn-primary font-weight-bold mr-5">
+                                <i class="flaticon-interface-5"></i>
+                                Lưu thông tin
+
+                            </button>
+                      
+                        <a class="btn btn-secondary font-weight-bold mr-2" href="javascript:CloseModalManual();">
+                            <i class="flaticon2-delete"></i>
+                            Thôi
+                        </a>
+
+                        <script>
+
+                            $(document).ready(function () {
+                                $("#btnLuu").click(function () {
+                                    event.preventDefault();
+                                    var id = $("#TemplateId").val();
+                                    console.log(id);
+                                    var postData = {
+
+                                        TemplateId: id,
+                                        LoaiId: $("#LoaiId").val(),
+                                        OrderStatusId: $("#OrderStatusId").val(),
+                                        TrangThaiId: $("#TrangThaiId").val(),
+                                       
+                                    };
+
+                                    addAntiForgeryToken(postData);
+
+                                    $.ajax({
+                                        cache: false,
+                                        type: "POST",
+                                        url: "@(Url.Action("_CauHinhZns", "ZaloOA"))",
+                                        data: postData,
+                                        success: function (data, textStatus, jqXHR) {
+                                            if (data.IsSuccess) {
+                                                ShowSuccess(data.Message);
+                                                CloseModalManual();
+                                                window.location.reload();
+                                            }
+                                            else {
+                                                ShowError(data.Message);
+                                            }
+
+                                        },
+                                        complete: function (jqXHR, textStatus) {
+
+                                        }
+                                    });
+                                });
+
+
+                            });
+                        </script>
+
+                    </div>
+                </div>
+            </div>
+            <!--end::Body-->
+        </div>
+        <!--End::Card-->
+    </div>
+    <!--end::Container-->
+</div>
+<!--end::Entry-->

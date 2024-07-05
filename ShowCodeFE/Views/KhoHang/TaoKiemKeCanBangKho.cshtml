@@ -1,0 +1,100 @@
+﻿@using Nop.Core.Domain.KhoHang;
+@model KhoHangGiaoDichModel
+@{
+    //page title
+    ViewBag.Title = T("MAR.KhoHang.QLKiemKe").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("KhoHang.QLKiemKe");
+}
+<form asp-controller="KhoHang" asp-action="LuuKiemKeCanBang" method="post">
+    <!--begin::Subheader-->
+    <div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+        <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+            <!--begin::Details-->
+            <div class="d-flex align-items-center flex-wrap mr-2">
+                <!--begin::Title-->
+                <h5 class="text-dark font-weight-bold mt-2 mb-2 mr-5">Thiết lập giao dịch @ViewBag.Title</h5>
+                <!--end::Title-->
+                <!--begin::Separator-->
+                <div class="subheader-separator subheader-separator-ver mt-2 mb-2 mr-5 bg-gray-200"></div>
+                <!--end::Separator-->
+                <!--begin::Search Form-->
+                <div class="d-flex align-items-center" id="kt_subheader_search">
+                    <span class="text-dark-50 font-weight-bold" id="kt_subheader_total"></span>
+                </div>
+                <!--end::Search Form-->
+            </div>
+            <!--end::Details-->
+            <!--begin::Toolbar-->
+            <div class="d-flex align-items-center">
+                <!--begin::Button-->
+                <a asp-action="QLGiaoDich" asp-route-tid="@((int)LoaiGiaoDichKhoHang.CAN_KHO)" class="btn btn-default font-weight-bold mr-2"><i class="la la-long-arrow-left"></i>Trở lại danh sách</a>
+               
+                @if (Model.trangThai == Nop.Core.Domain.KhoHang.TrangThaiGiaoDichKhoHang.NHAP)
+                {
+                    <button type="submit" name="save" class="btn btn-primary font-weight-bold mr-2" id="btnLuu">
+                        <i class="flaticon2-hourglass-1"></i>
+                        Lưu
+                    </button>
+                    <button type="submit" name="save-continue" class="btn btn-success font-weight-bold mr-2" id="btnLuuVaTiepTuc">
+                        <i class="flaticon2-writing"></i>
+                        Lưu và tiếp tục sửa
+                    </button>
+                }
+                <!--end::Button-->
+                @if (Model.Id > 0)
+                {
+                    if (Model.trangThai == Nop.Core.Domain.KhoHang.TrangThaiGiaoDichKhoHang.NHAP)
+                    {
+                        <a href="javascript:CapNhatTrangThai(@((int)Nop.Core.Domain.KhoHang.TrangThaiGiaoDichKhoHang.DUYET),'Bạn xác nhận DUYỆT giao dịch @Model.LoaiGiaoDichText này');" class="btn btn-warning font-weight-bold mr-2">
+                            <i class="flaticon2-checking"></i>
+                           Hoàn Thành
+                        </a>
+                    }
+                    <script>
+
+                    </script>
+                    @*if (Model.trangThai == Nop.Core.Domain.KhoHang.TrangThaiGiaoDichKhoHang.DUYET)
+                    {
+                        <text>
+                            <a href="javascript:CapNhatTrangThai(@((int)Nop.Core.Domain.KhoHang.TrangThaiGiaoDichKhoHang.NHAP),'Bạn xác nhận HỦY DUYỆT giao dịch @Model.LoaiGiaoDichText về trạng thái NHÁP');" class="btn btn-warning mr-2">
+                                <i class="flaticon2-delete"></i>
+                                Hủy duyệt
+                            </a>
+                        </text>
+                    }*@@*
+                    if (Model.trangThai != Nop.Core.Domain.KhoHang.TrangThaiGiaoDichKhoHang.NHAP)
+                    {
+                        <a href="@Url.Action("InPhieu", "KhoHang")?tguid=@Model.SessionId&tid=@Model.LoaiPhieuInId" class="btn btn-success font-weight-bold mr-2" target="_blank">
+                            <i class="flaticon2-printer"></i>
+                            In phiếu kho hàng
+                        </a>
+                        <a href="@Url.Action("InPhieu", "KhoHang")?tguid=@Model.SessionId&tid=@((int)LoaiPhieuIn.PHIEU_MUA_HANG)" class="btn btn-success font-weight-bold mr-2" target="_blank">
+                            <i class="flaticon2-copy"></i>
+                            In phiếu mua hàng
+                        </a>
+                    }*@
+                    if (Model.trangThai == Nop.Core.Domain.KhoHang.TrangThaiGiaoDichKhoHang.NHAP || Model.trangThai == Nop.Core.Domain.KhoHang.TrangThaiGiaoDichKhoHang.DUYET)
+                    {
+                        <text>
+                            <span class="btn btn-danger mr-2" id="item-delete">
+                                <i class="flaticon2-delete"></i>
+                                Hủy bỏ
+                            </span>
+                        </text>
+                    }
+                }
+                <!--end::Button-->
+             
+
+            </div>
+            <!--end::Toolbar-->
+        </div>
+    </div>
+    <!--end::Subheader-->
+
+    @await Html.PartialAsync("_CreateOrUpdateKiemKe", Model)
+    
+</form>
+
+<nop-delete-confirmation asp-model-id="@Model.Id" asp-button-id="item-delete" asp-action="XoaKhoHangGiaoDich" />
